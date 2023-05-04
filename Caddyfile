@@ -1,0 +1,8 @@
+:9899
+
+route /fulger/* {
+	uri strip_prefix /fulger
+	reverse_proxy localhost:9994
+}
+
+reverse_proxy 127.0.0.1:5173
