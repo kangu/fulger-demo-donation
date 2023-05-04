@@ -1,7 +1,8 @@
 <script>
-    import {processCurrentRates, watchForPaymentComplete} from '$lib/fulger.js'
+    import {processCurrentRates, watchForPaymentComplete, getCurrentPaymentRevision} from '$lib/fulger.js'
+    import {copyToClipboard} from '$lib/clipboard.js'
     import currencyMatches from '$lib/language_currencies.js'
-    import {onMount} from 'svelte'
+    import {onMount, onDestroy} from 'svelte'
     import {enhance} from '$lib/form'
 
     export let startingValue = '1000'
@@ -12,6 +13,7 @@
     let isSubmitting = false
     let isSuccess = false
     let isPaid = false
+    let invoiceRev = null   // keeps track of changes to the document
     let invoiceDoc = {
         ln_invoice_req: '',
         ln_invoice_qr: ''
@@ -26,6 +28,7 @@
 
         // initialize new order
         const existingOrder = localStorage.getItem('active')
+        const startRev = localStorage.getItem('start_rev')
         console.log('Matching', targetCurrency, finalValueInSats, JSON.parse(existingOrder))
         if (existingOrder !== null) {
             // resume existing order
@@ -33,9 +36,31 @@
             isSuccess = true
             isPaid = false
             isSubmitting = true
+
+            // get statuses
+            invoiceRev = invoiceDoc._rev
+            lookForPayment()
         }
 
+        window.addEventListener("online", lookForPayment)
+        document.addEventListener("visibilitychange", pageChanged)
+
     })
+
+    onDestroy(() => {
+        if (typeof window !== "undefined") {
+            window.removeEventListener("online", lookForPayment)
+            document.removeEventListener("visibilitychange", pageChanged)
+        }
+    })
+
+    async function pageChanged() {
+        console.log('Visiblity changed', document.visibilityState)
+        if (document.visibilityState === "visible") {
+            lookForPayment()
+        }
+    }
+
 
     async function initializeRatesAndDefaultValues() {
         /* if found matching rate, set to default value in local currency
@@ -66,17 +91,26 @@
         isSuccess = true
         invoiceDoc = await data.response.json()
         console.log('Got success', invoiceDoc)
+        invoiceRev = invoiceDoc._rev
         // might want to persist invoice data to local storage to reuse in case of refresh
         localStorage.setItem('active', JSON.stringify(invoiceDoc))
+        const currentRev = await getCurrentPaymentRevision(invoiceDoc._id)
+        localStorage.setItem('start_rev', currentRev)
+        console.log('Rev of invoice moment', currentRev)
         // trigger watch for invoiceDoc._id
+        lookForPayment(currentRev)
+    }
+
+    function lookForPayment() {
         setTimeout(async () => {
-            await watchForPaymentComplete(invoiceDoc._id, paymentComplete)
+            const currentRev = localStorage.getItem('start_rev')
+            await watchForPaymentComplete(invoiceDoc._id, currentRev, paymentComplete)
         })
     }
 
     function paymentComplete(status) {
         console.log('Completion status', status)
-        if (status.results.length) {
+        if (status && status.results.length) {
             isPaid = true
             localStorage.removeItem('active')
         }
@@ -95,9 +129,6 @@
         isSubmitting = true
     }
 
-    function copyLnurlToClipboard() {
-        navigator.clipboard.writeText(invoiceDoc.ln_invoice_req)
-    }
 </script>
 
 <section>
@@ -117,6 +148,7 @@
                 {targetCurrency}
                 <input
                         type="number"
+                        inputmode="numeric"
                         placeholder="x"
                         min="0.1"
                         step="any"
@@ -128,7 +160,9 @@
             </div>
         {/if}
 
-        <button>Do it</button>
+        <button class="pay"
+                data-goatcounter-click="pressed-do-it"
+                data-goatcounter-title="Initiated payment">Do it</button>
     </form>
 
     <div class="loader" class:loading={isSubmitting && !isSuccess}></div>
@@ -140,10 +174,10 @@
         </a>
         <div class="raw-lnurl">
             <input type="text" value={invoiceDoc.ln_invoice_req}>
-            <button on:click|preventDefault={copyLnurlToClipboard}>Copy</button>
+            <button on:click={copyToClipboard}>Copy</button>
         </div>
         <p>Scan or click to pay</p>
-        <a on:click={cancelTransaction}>Cancel transaction</a>
+        <a on:click={cancelTransaction} data-goatcounter-click="pressed-cancel">Cancel transaction</a>
     </div>
 
     {#if isSuccess && isPaid}
@@ -193,12 +227,12 @@
         animation: load8 1.1s infinite linear;
     }
 
-    button {
+    button.pay {
         margin: 1rem 0;
         background-color: var(--color-theme-1);
         color: #FFF;
         border: none;
-        padding: 5px;
+        padding: 15px 5px;
         cursor: pointer;
     }
 

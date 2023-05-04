@@ -2,17 +2,15 @@
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
 
-## Creating a project
+## Added files
 
-If you're seeing this, you've probably already done this step. Congrats!
+The following files have been added to the template:
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+`src/lib/fulger.js` - API for [Fulger backend](fulger.kangu.ro)
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+`src/lib/language_currencies.js` - json object matching language locales (from `navigation.language`) to local currency codes
+
+`src/lib/form.js` - handles form submission through a [fetch request](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 
 ## Developing
 
