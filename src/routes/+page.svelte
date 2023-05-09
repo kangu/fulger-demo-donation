@@ -10,16 +10,13 @@
 </svelte:head>
 
 <section>
-	<h1>
-<!--		<span class="welcome">-->
-<!--			<picture>-->
-<!--				<source srcset={welcome} type="image/webp" />-->
-<!--				<img src={welcome_fallback} alt="Welcome" />-->
-<!--			</picture>-->
-<!--		</span>-->
-
-		donate sats to<br/> support our development team <br/> building open source tooling
-	</h1>
+	<div class="hero">
+		<h1>
+			Donate sats to<br/> support our development team <br/> building open source tooling
+		</h1>
+		<p>Check out the <a href="https://github.com/kangu/fulger-demo-donation" target="_blank">github repository</a> for the source code of this simple website built with Svelte and using
+			the Fulger backend</p>
+	</div>
 
 	<SatsDonation
 			startingValue="10000"/>
@@ -29,29 +26,19 @@
 <style>
 	section {
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
+		flex-direction: row;
+		justify-content: space-around;
 		align-items: center;
 		flex: 0.6;
 	}
 
 	h1 {
 		width: 100%;
+		text-align: left;
+		font-weight: 600;
 	}
 
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
+	.hero {
+		max-width: 600px;
 	}
 </style>
