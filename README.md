@@ -6,7 +6,7 @@ Everything you need to build a Svelte project, powered by [`create-svelte`](http
 
 The following files have been added to the template:
 
-`src/lib/fulger.js` - API for [Fulger backend](fulger.kangu.ro)
+`src/lib/fulger.js` - API for [Fulger backend](https://fulger.kangu.ro)
 
 `src/lib/language_currencies.js` - json object matching language locales (from `navigation.language`) to local currency codes
 
