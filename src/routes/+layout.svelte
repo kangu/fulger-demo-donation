@@ -12,10 +12,6 @@
 		<slot />
 	</main>
 
-	<footer>
-		<p>visit <a href="https://kit.svelte.dev">GitHub repository</a> to see what this website has under the hood.
-		You can make it work for yourself too!</p>
-	</footer>
 </div>
 
 <style>
